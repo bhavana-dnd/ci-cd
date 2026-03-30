@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "<your-dockerhub-username>/ci-cd-app"
+        DOCKER_IMAGE = "bhavana3012/ci-cd-app:latest"
     }
 
     stages {
 
-        stage('Clone') {
+        stage('Clone Repository') {
             steps {
-                echo "Cloning repo..."
+                git branch: 'main',
+                url: 'https://github.com/bhavana-dnd/ci-cd.git'
             }
         }
 
@@ -23,15 +24,30 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
-                    docker login -u $USER -p $PASS
+                    docker login -u $DOCKER_USER -p $DOCKER_PASS
                     docker push $DOCKER_IMAGE
                     '''
                 }
             }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f deployment.yaml'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check logs.'
         }
     }
 }
