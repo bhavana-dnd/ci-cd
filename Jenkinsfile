@@ -11,7 +11,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/bhavana-dnd/java-ci-cd.git'
+                url: 'https://github.com/bhavana-dnd/ci-cd.git'
             }
         }
 
