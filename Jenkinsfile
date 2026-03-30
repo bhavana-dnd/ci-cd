@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "bhavana3012/ci-cd-app:latest"
+        DOCKER_IMAGE = "bhavana3012/java-app:latest"
+        KUBECONFIG = "/var/jenkins_home/kubeconfig"
     }
 
     stages {
@@ -10,7 +11,13 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/bhavana-dnd/ci-cd.git'
+                url: 'https://github.com/bhavana-dnd/java-ci-cd.git'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn clean package'
             }
         }
 
@@ -37,14 +44,17 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f deployment.yaml'
+                sh '''
+                export KUBECONFIG=$KUBECONFIG
+                kubectl apply -f deployment.yaml
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline executed successfully!'
+            echo 'CI/CD Pipeline executed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
